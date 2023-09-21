@@ -1,0 +1,40 @@
+---
+- name: Create Python virtual environment with pipx
+  hosts: all
+  become: yes 
+  tasks:
+    - name: Install pipx prerequisites (Debian/Ubuntu)
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+      apt:
+        name:
+          - python3
+          - python3-pip
+      tags: debian_ubuntu
+
+    - name: Install pipx prerequisites (Red Hat/CentOS)
+      when: ansible_distribution in ['RedHat', 'CentOS']
+      yum:
+        name:
+          - python3
+          - python3-pip
+      tags: redhat_centos
+
+    - name: Install pipx
+      pip:
+        name: pipx
+        state: present
+      tags: pipx
+
+    - name: Create a virtual environment using pipx
+      command: pipx ensurepath
+      environment:
+        PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/pipx"
+      tags: pipx
+
+    - name: Install packages in the virtual environment
+      command: pipx install {{ package_name }}
+      environment:
+        PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+      tags: pipx
