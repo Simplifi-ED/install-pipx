@@ -1,6 +1,8 @@
-[rails]
-4.210.244.179
+[servers]
+98.71.237.169
+98.71.235.194
 
-[rails:vars]
+
+[servers:vars]
 ansible_user=azureuser
 ansible_ssh_private_key_file=~/.ssh/id_rsa
