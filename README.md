@@ -1,5 +1,7 @@
 ## Make file executable
+```
 chmod +x install.sh
+```
 
 ## Install without compile
 ```
