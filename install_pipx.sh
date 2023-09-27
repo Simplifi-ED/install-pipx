@@ -1,34 +1,45 @@
 #!/usr/bin/env bash
 
 function install_python()
-{   
-    PYDIR=$HOME/opt/python-3.10.6
-    export PATH=$PYDIR/bin:$PATH
-    export CPPFLAGS="-I$PYDIR/include $CPPFLAGS"
+{   sudo apt-get install build-essential checkinstall -y
+    sudo apt-get install libreadline-gplv2-dev libncursesw5-dev libssl-dev  \
+      libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev -y
 
-    mkdir -p $PYDIR/src
-    cd $PYDIR/src
+    #openssl
+    cd /usr/local/src/
+    sudo wget https://www.openssl.org/source/openssl-3.0.8.tar.gz
+    sudo tar xzvf openssl-3.0.8.tar.gz
+    cd openssl-3.0.8
+    sudo ./config --prefix=/usr/local/ssl --openssldir=/usr/local/ssl shared zlib
+    sudo make
+    sudo make install
+    
+    sudo tee -a /etc/ld.so.conf.d/openssl-3.0.8.conf <<END
+/usr/local/ssl/lib64
+END
+    sudo ldconfig -v
+    sudo mv $(which openssl) $(which openssl).backup
+    sudo tee -a /etc/profile.d/openssl.sh <<EOT
+PATH=$PATH:/usr/local/ssl/bin
+export PATH
+EOT
+    sudo chmod +x /etc/profile.d/openssl.sh
+    source /etc/profile.d/openssl.sh
+    echo $PATH
+    openssl version -a
 
-    # openssl
-    wget https://www.openssl.org/source/openssl-1.1.1l.tar.gz
-    tar zxf openssl-1.1.1l.tar.gz
-    cd openssl-1.1.1l
-    ./config --prefix=$PYDIR
-    make
-    make install
 
     # python
-    wget https://www.python.org/ftp/python/3.10.6/Python-3.10.6.tar.xz
-    tar xf Python-3.10.6.tar.xz
+    sudo apt install build-essential libssl-dev zlib1g-dev libffi-dev -y
+    cd /opt
+    sudo wget https://www.python.org/ftp/python/3.10.6/Python-3.10.6.tar.xz
+    sudo tar xf Python-3.10.6.tar.xz
     cd Python-3.10.6
-    ./configure --prefix=$PYDIR
-    make
-    make install
-    cd Python-3.10.6
-    sudo ./configure --enable-optimizations --prefix=$PYDIR
+    
+    sudo ./configure --with-openssl-rpath=auto --with-openssl=/usr/local/ssl --enable-optimizations 
+    sudo make
     sudo make install
     sudo update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10 0
-    #sudo ln -sf /usr/bin/python3.10 /usr/bin/python3 
     python3 -V
 
     cd /opt
