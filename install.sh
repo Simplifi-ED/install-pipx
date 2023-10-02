@@ -49,7 +49,15 @@ while [[ $# > 0 ]];do
     shift # past argument or value
 done
 if [[ $latest == 1 || $install_version ]];then
-    [[ $config_param ]] && echo "python3 compile command: `color_echo $blue ./configure $config_param`"
+    IFS='.' read -r -a v_parts <<< "$install_version"
+    major_v=${v_parts[0]}
+    minor_v=${v_parts[1]}
+    if [[ "$major_v" -lt 3 || ( "$major_v" -eq 3 && "$minor_v" -lt 7 ) ]]; then
+        color_echo $yellow "The provided python version should be 3.7.x or newer"
+        exit 1
+    else
+        [[ $config_param ]] && echo "python3 compile command: `color_echo $blue ./configure $config_param`"
+    fi
 fi
 #############################
 
@@ -80,7 +88,7 @@ check_sys() {
     elif [[ `command -v zypper` ]];then
         package_manager='zypper'
     else
-        color_echo $red "Not support OS!"
+        color_echo $red "OS not supported!"
         exit 1
     fi
 
