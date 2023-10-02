@@ -238,6 +238,7 @@ main(){
     check_python_version
     # Check if Python version is less than 3.7
     if [[ "$major_version" -lt 3 || ( "$major_version" -eq 3 && "$minor_version" -lt 7 ) ]]; then
+        color_echo $blue "Installing..."
         check_sys
 
         common_dependent
@@ -252,6 +253,8 @@ main(){
 
         pipx_install  
     else
+        color_echo $green "Already python 3.7.x or newer is installed"
+        color_echo $blue "procceeding to insdtall pipx..."
         pipx_install
     fi
     
