@@ -209,7 +209,10 @@ main(){
     python3 -m pipx ensurepath
 
     # Verify pipx installation
-    source ~/.bashrc
+    if [[ ${package_manager} == 'zypper' ]];then
+        source /etc/profile
+    else
+        source ~/.bashrc
     pipx --version
 }
 
