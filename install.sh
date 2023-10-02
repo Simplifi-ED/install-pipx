@@ -20,14 +20,13 @@ red="31m"
 green="32m"
 yellow="33m"
 blue="36m"
-fuchsia="35m"
 
 color_echo() {
 	echo -e "\033[$1${@:2}\033[0m"
 }
 
 #######get params#########
-while [[ $# > 0 ]]; do
+while [[ $# -gt 0 ]]; do
 	KEY="$1"
 	case $KEY in
 	--nopip)
@@ -39,7 +38,7 @@ while [[ $# > 0 ]]; do
 		;;
 	-v | --version)
 		install_version="$2"
-		echo -e "prepare install python $(color_echo ${blue} $install_version)..\n"
+		echo -e "prepare install python $(color_echo ${blue} "$install_version")..\n"
 		shift
 		;;
 	*)
@@ -56,7 +55,7 @@ if [[ $latest == 1 || $install_version ]]; then
 		color_echo $yellow "The provided python version should be 3.7.x or newer"
 		exit 1
 	else
-		[[ $config_param ]] && echo "python3 compile command: $(color_echo $blue ./configure $config_param)"
+		[[ $config_param ]] && echo "python3 compile command: $(color_echo $blue ./configure "$config_param")"
 	fi
 fi
 #############################
@@ -76,7 +75,7 @@ check_python_version() {
 
 check_sys() {
 	# check root user
-	[ $(id -u) != "0" ] && {
+	[ "$(id -u)" != "0" ] && {
 		color_echo ${red} "Error: You must be root to run this script"
 		exit 1
 	}
@@ -94,8 +93,8 @@ check_sys() {
 		exit 1
 	fi
 
-	[[ -z $(echo $PATH | grep /usr/local/bin) ]] && {
-		echo 'export PATH=$PATH:/usr/local/bin' >>/etc/bashrc
+	[[ -z $(echo "$PATH" | grep /usr/local/bin) ]] && {
+		echo "export PATH=$PATH:/usr/local/bin" >>/etc/bashrc
 		source /etc/bashrc
 	}
 }
@@ -118,33 +117,33 @@ compile_dependent() {
 }
 
 download_package() {
-	cd $origin_path
+	cd "$origin_path" || exit
 	[[ $latest == 1 ]] && install_version=$(curl -s https://www.python.org/ | grep "downloads/release/" | egrep -o "Python [[:digit:]]+\.[[:digit:]]+\.[[:digit:]]" | sed s/"Python "//g)
 	python_package="Python-$install_version.tgz"
 	while :; do
 		if [[ ! -e $python_package ]]; then
-			wget https://www.python.org/ftp/python/$install_version/$python_package
+			wget https://www.python.org/ftp/python/"$install_version"/"$python_package"
 			if [[ $? != 0 ]]; then
 				color_echo ${red} "Fail download $python_package version python!"
 				exit 1
 			fi
 		fi
-		tar xzvf $python_package
+		tar xzvf "$python_package"
 		if [[ $? == 0 ]]; then
 			break
 		else
-			rm -rf $python_package Python-$install_version
+			rm -rf "$python_package" Python-"$install_version"
 		fi
 	done
-	cd Python-$install_version
+	cd Python-"$install_version" || exit
 }
 
 update_openssl() {
-	cd $origin_path
+	cd "$origin_path" || exit
 	local version=$1
-	wget --no-check-certificate https://www.openssl.org/source/openssl-$version.tar.gz
-	tar xzvf openssl-$version.tar.gz
-	cd openssl-$version
+	wget --no-check-certificate https://www.openssl.org/source/openssl-"$version".tar.gz
+	tar xzvf openssl-"$version".tar.gz
+	cd openssl-"$version"
 	./config --prefix=/usr/local/openssl shared zlib
 	make && make install
 	mv -f /usr/bin/openssl /usr/bin/openssl.old
@@ -154,7 +153,7 @@ update_openssl() {
 	echo "/usr/local/openssl/lib" >>/etc/ld.so.conf
 	ldconfig
 
-	cd $origin_path && rm -rf openssl-$version*
+	cd "$origin_path" && rm -rf openssl-$version*
 }
 
 # compile install python3
@@ -172,11 +171,11 @@ compileInstall() {
 		make && make install
 	else
 		download_package
-		./configure $config_param
+		./configure "$config_param"
 		make && make install
 	fi
 
-	cd $origin_path && rm -rf Python-$install_version*
+	cd "$origin_path" && rm -rf Python-$install_version*
 }
 
 #online install python3
@@ -203,7 +202,7 @@ web_install() {
 pip_install() {
 	[[ $no_pip == 1 ]] && return
 	py3_version=$(python3 -V | tr -cd '[0-9.]' | cut -d. -f2)
-	if [[ $py3_version > 6 ]]; then
+	if [[ $py3_version -gt 6 ]]; then
 		python3 <(curl -sL https://bootstrap.pypa.io/get-pip.py)
 	elif [[ $py3_version == 6 ]]; then
 		python3 <(curl -sL https://bootstrap.pypa.io/pip/3.6/get-pip.py)
@@ -231,7 +230,7 @@ pipx_install() {
 		if [[ "$ID" == *"suse"* ]]; then
 			source /etc/profile
 		else
-			source ~/.bashrc
+			source "$HOME"/.bashrc
 		fi
 	fi
 	# Verify pipx installation
