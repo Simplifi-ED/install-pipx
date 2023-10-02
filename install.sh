@@ -63,6 +63,8 @@ check_sys() {
         package_manager='dnf'
     elif [[ `command -v yum` ]];then
         package_manager='yum'
+    elif [[ `command -v zypper` ]];then
+        package_manager='zypper'
     else
         color_echo $red "Not support OS!"
         exit 1
@@ -80,6 +82,8 @@ compile_dependent(){
     if [[ ${package_manager} == 'yum' || ${package_manager} == 'dnf' ]];then
         ${package_manager} groupinstall -y "Development tools"
         ${package_manager} install -y tk-devel xz-devel gdbm-devel sqlite-devel bzip2-devel readline-devel zlib-devel openssl-devel libffi-devel
+    elif [[ ${package_manager} == 'zypper' ]];then
+        ${package_manager} install -y readline-devel sqlite3-devel libbz2-devel zlib-devel libopenssl-devel libffi-devel gcc make
     else
         ${package_manager} install -y build-essential
         ${package_manager} install -y uuid-dev tk-dev liblzma-dev libgdbm-dev libsqlite3-dev libbz2-dev libreadline-dev zlib1g-dev libncursesw5-dev libssl-dev libffi-dev
@@ -201,10 +205,11 @@ main(){
     pip_install
 
     # Install pipx using pip
-    python3 -m pip install --user pipx
+    python3 -m pip install -U pipx
     python3 -m pipx ensurepath
 
     # Verify pipx installation
+    source ~/.bashrc
     pipx --version
 }
 
