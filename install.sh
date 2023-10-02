@@ -53,6 +53,20 @@ if [[ $latest == 1 || $install_version ]];then
 fi
 #############################
 
+check_python_version() {
+    # Get the installed Python version
+    python_version=$(python3 --version 2>&1)
+
+    # Extract the Python version number
+    python_version_number=$(echo "$python_version" | awk '{print $2}')
+
+    # Split the version number into major and minor parts
+    IFS='.' read -r -a version_parts <<< "$python_version_number"
+    major_version=${version_parts[0]}
+    minor_version=${version_parts[1]}
+}
+
+
 check_sys() {
     # check root user
     [ $(id -u) != "0" ] && { color_echo ${red} "Error: You must be root to run this script"; exit 1; }
@@ -191,29 +205,48 @@ pip_install(){
     fi
 }
 
-main(){
-    check_sys
-
-    common_dependent
-    
-    if [[ $latest == 1 || $install_version ]];then
-        compileInstall
-    else
-        web_install
-    fi
-
-    pip_install
-
+pipx_install(){
     # Install pipx using pip
     python3 -m pip install -U pipx
     python3 -m pipx ensurepath
 
-    # Verify pipx installation
-    if [[ ${package_manager} == 'zypper' ]];then
-        source /etc/profile
-    else
-        source ~/.bashrc
+    #Reload Path
+    if [ -f /etc/os-release ]; then
+        # Read the content of the /etc/os-release file
+        source /etc/os-release
+        
+        # Check if the ID variable contains "suse"
+        if [[ "$ID" == *"suse"* ]]; then
+            source /etc/profile
+        else
+            source ~/.bashrc
+        fi
+    fi
+    # Verify pipx installation    
     pipx --version
+}
+
+main(){
+    check_python_version
+    # Check if Python version is less than 3.7
+    if [[ "$major_version" -lt 3 || ( "$major_version" -eq 3 && "$minor_version" -lt 7 ) ]]; then
+        check_sys
+
+        common_dependent
+        
+        if [[ $latest == 1 || $install_version ]];then
+            compileInstall
+        else
+            web_install
+        fi
+
+        pip_install
+
+        pipx_install  
+    else
+        pipx_install
+    fi
+    
 }
 
 main
