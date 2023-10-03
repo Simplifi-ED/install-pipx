@@ -251,13 +251,13 @@ main() {
 		else
 			web_install
 		fi
-
+		
 		pip_install
-
 		pipx_install
 	else
 		color_echo $green "Already python 3.7.x or newer is installed."
 		color_echo $blue "Procceeding to install pipx..."
+		pip_install
 		pipx_install
 	fi
 
