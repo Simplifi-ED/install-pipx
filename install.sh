@@ -51,12 +51,8 @@ if [[ $latest == 1 || $install_version ]]; then
 	IFS='.' read -r -a v_parts <<<"$install_version"
 	major_v=${v_parts[0]}
 	minor_v=${v_parts[1]}
-    check_python_version
 	if [[ "$major_v" -lt 3 || ("$major_v" -eq 3 && "$minor_v" -lt 7) ]]; then
 		color_echo $yellow "The provided python version should be 3.7.x or newer"
-		exit 1
-    elif [[ "$major_v" -eq  "$major_version" && "$minor_v" -eq  "$minor_version" ]]; then
-        color_echo $yellow "The provided python version is already installed."
 		exit 1
 	else
 		[[ $config_param ]] && echo "python3 compile command: $(color_echo $blue ./configure "$config_param")"
@@ -173,12 +169,12 @@ compileInstall() {
 		download_package
 		./configure --with-openssl=/usr/local/openssl $config_param
 		make && make install
-        sudo ln -sf /usr/local/bin/python3."$minor_version" /usr/bin/python3
+		sudo ln -sf /usr/local/bin/python3."$minor_version" /usr/bin/python3
 	else
 		download_package
 		./configure "$config_param"
 		make && make install
-        sudo ln -sf /usr/local/bin/python3."$minor_version" /usr/bin/python3
+		sudo ln -sf /usr/local/bin/python3."$minor_version" /usr/bin/python3
 	fi
 
 	cd "$origin_path" && rm -rf Python-$install_version*
@@ -245,8 +241,12 @@ pipx_install() {
 
 main() {
 	check_python_version
+	if [[ "$major_v" -eq "$major_version" && "$minor_v" -eq "$minor_version" ]]; then
+		color_echo $yellow "The provided python version is already installed."
+		pip_install
+		color_echo $blue "Procceeding to install pipx..."
 	# Check if Python version is less than 3.7
-	if [[ "$major_version" -lt 3 || ("$major_version" -eq 3 && "$minor_version" -lt 7) ]]; then
+	elif [[ "$major_version" -lt 3 || ("$major_version" -eq 3 && "$minor_version" -lt 7) ]]; then
 		color_echo $blue "Installing..."
 		check_sys
 
@@ -257,7 +257,7 @@ main() {
 		else
 			web_install
 		fi
-		
+
 		pip_install
 	else
 		color_echo $green "Already python 3.7.x or newer is installed."
