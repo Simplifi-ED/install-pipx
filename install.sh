@@ -169,10 +169,12 @@ compileInstall() {
 		download_package
 		./configure --with-openssl=/usr/local/openssl $config_param
 		make && make install
+		sudo ln -sf /usr/local/bin/python3."$minor_version" /usr/bin/python3
 	else
 		download_package
 		./configure "$config_param"
 		make && make install
+		sudo ln -sf /usr/local/bin/python3."$minor_version" /usr/bin/python3
 	fi
 
 	cd "$origin_path" && rm -rf Python-$install_version*
